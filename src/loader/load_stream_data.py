@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 
 import psycopg2.extras as p
 
-from utils.paths import STREAM_FILE
+from utils.paths import STREAM_FILE, STREAM_DIR
 from utils.db import WarehouseConnection
 from utils.config import get_warehouse_creds
 
@@ -59,11 +59,21 @@ def _get_stream_data_insert_query() -> str:
     )
     """
 
-def get_stream_data(stream_file: Path = STREAM_FILE) -> List[Dict[str, Union[str, int, bool]]]:
+def get_stream(stream_file: Path = STREAM_FILE) -> List[Dict[str, Union[str, int, bool]]]:
     f = open(stream_file)
     streams = json.load(f)
 
     return [stream for stream in streams]
+
+def get_stream_data(stream_dir: Path = STREAM_DIR) -> List[Dict[str, Union[str, int, bool]]]:
+    files = [file for file in stream_dir.iterdir() if file.suffix=='.json']
+    
+    history = []
+    for file in files:
+        streams = get_stream(file)
+        history += streams
+
+    return history
 
 def load_stream_data():
     stream_data = get_stream_data()
